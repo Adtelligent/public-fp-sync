@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<script>
+    const LS_END_KEY = 'syncedWith';
+    const LS_UID_KEY = 'open-id'
+    const SYNC_LIMIT = parseInt(getUrlParam('limit') || '3');
+
+    async function start() {
+        let userId = getUrlParam('uid') || getFromLS(LS_UID_KEY);
+
+        if (!userId) {
+            userId = await generateUID();
+            saveToLS(LS_UID_KEY, userId);
+        }
+        notifyOrigin('open-sync-update', { userId })
+        fetch('./public-list.json')
+            .then(r => r.json())
+            .then(async (list) => {
+                let pointer = getStartingPoint(list.length);
+                for (let i = 0; i < SYNC_LIMIT; i++) {
+                    if (pointer >= list.length) {
+                        pointer = 0;
+                    }
+                    await new Promise((resolve) => {
+                        createSyncFrame({ url: list[pointer].syncUrl, uid: userId }, resolve);
+                    })
+                    saveToLS(LS_END_KEY, ++pointer)
+                }
+            })
+    }
+
+    function getUrlParam(name) {
+        const match = location.search.match(new RegExp('[?&]' + name + '=([^&]+)', 'i'));
+        return match ? match[1] : null;
+    }
+
+    function getStartingPoint(len) {
+        // todo add incoming domain hash
+        let lastFinish = getFromLS(LS_END_KEY);
+        if (lastFinish !== null) {
+            return parseInt(lastFinish);
+        }
+        return Math.floor(Math.random() * len)
+    }
+
+    function generateUID() {
+        // todo add guid generation
+        return Math.round(Date.now() * Math.random());
+    }
+
+    function notifyOrigin(message, data) {
+        window.parent.postMessage(Object.assign({}, { message }, data), getUrlParam('origin') || '*');
+    }
+
+    function saveToLS(key, value) {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {
+        }
+    }
+
+    function getFromLS(key) {
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            return null
+        }
+    }
+
+    function createSyncFrame(opts, cb) {
+        const iframe = document.createElement('iframe');
+        iframe.src = opts.url.replace('{uid}', opts.uid);
+        const style = iframe.style;
+        style.width = '0px';
+        style.height = '0px';
+        style.border = 'none';
+        iframe.onload = cb;
+        iframe.onerror = cb;
+        document.body.appendChild(iframe);
+    }
+
+
+    start();
+</script>
+</body>
+</html>

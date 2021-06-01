@@ -4,17 +4,23 @@
     <meta charset="UTF-8">
 </head>
 <body>
+<h1>Welcome</h1>
+<p>this is an example of sync page</p>
 <script>
-    fetch('./public-list.json')
-        .then(r => r.json())
-    .then(list=>{
-        list.forEach(item=>{
-            var iframe = document.createElement('iframe');
-            iframe.src= item.syncUrl;
-            document.body.appendChild(iframe);
-        })
-    })
-    localStorage.setItem('fpId','12312312')
+    window.opensync = {
+        startDelay: 0,
+        syncLimit: 1
+    }
+</script>
+<script src="./opensync.js" onload="demo()" async></script>
+
+<script>
+    function demo() {
+        window.opensync.getOpenId()
+            .then(id => {
+                document.body.innerHTML += (`Your openId is: ${id}`);
+            })
+    }
 </script>
 </body>
 </html>
