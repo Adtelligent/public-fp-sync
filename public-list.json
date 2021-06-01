@@ -1,12 +1,12 @@
 [
   {
     "pub": "pub1",
-    "syncUrl": "https://pub1.site/opensync?uid={uid}",
+    "syncUrl": "https://pub1.site/opensync.php?uid={uid}",
     "qps": 10
   },
   {
     "pub": "pub2",
-    "syncUrl": "https://pub2.club/opensync?uid={uid}",
+    "syncUrl": "https://pub2.club/opensync.php?uid={uid}",
     "qps": 10
   }
 ]
